@@ -2,7 +2,7 @@ jenkins:
   Master:
     ImageTag: "2.138-alpine"
     Cpu: "500m"
-    Memory: "500Mi"
+    Memory: "800Mi"
     ServiceType: ClusterIP
     ServiceAnnotations:
       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
@@ -51,4 +51,4 @@ jenkins:
     # GlobalLibraries: true
   rbac:
     install: true
-    roleBindingKind: RoleBinding
+    roleBindingKind: ClusterRoleBinding
