@@ -40,6 +40,10 @@ jenkins:
         ingress.kubernetes.io/proxy-request-buffering: "off"
         kubernetes.io/tls-acme: "true"
         kubernetes.io/ingress.global-static-ip-name: df-ip
+      TLS:
+      - secretName: le-jenkins
+        hosts:
+        - jenkins2.dockerflow.com
     HostName: jenkins2.dockerflow.com
     CustomConfigMap: true
     # CredentialsXmlSecret: jenkins-credentials

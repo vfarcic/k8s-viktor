@@ -1,0 +1,14 @@
+name: docker-flow-letsencrypt
+version: 0.0.1
+apiVersion: v1
+description: Docker Flow Proxy Let's Encrypt
+keywords:
+- docker
+- swarm
+- docker-flow
+home: https://proxy-letsencrypt.dockerflow.com
+sources:
+- https://github.com/n1b0r/docker-flow-proxy-letsencrypt
+maintainers:
+- name: Viktor Farcic
+  email: viktor@farcic.com

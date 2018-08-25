@@ -1,0 +1,33 @@
+server:
+  ingress:
+    enabled: true
+    hosts:
+    - prometheus.dockerflow.com
+    annotations:
+      kubernetes.io/tls-acme: "true"
+    tls:
+    - hosts:
+      - prometheus.dockerflow.com
+      secretName: letsencrypt-secret-prometheus
+serverFiles:
+  alerts:
+    groups:
+    - name: nodes
+      rules:
+      - alert: TooMany
+        expr: count(kube_node_info) > 5
+        for: 10m
+        labels:
+          severity: page
+        annotations:
+          summary: Increased the number of nodes
+alertmanagerFiles:
+  alertmanager.yml:
+    global: {}
+    receivers:
+      - name: default-receiver
+    route:
+      group_wait: 10s
+      group_interval: 5m
+      receiver: default-receiver
+      repeat_interval: 3h

@@ -20,4 +20,17 @@ helm upgrade -i cert-manager \
 
 helm upgrade -i jenkins jenkins \
     --namespace cd
+
+helm upgrade -i docker-flow-letsencrypt \
+    docker-flow-letsencrypt \
+    --namespace df
+
+helm upgrade -i prometheus \
+    stable/prometheus \
+    --namespace metrics \
+    --values prometheus-values.yaml
+
+kubectl -n metrics \
+    rollout status \
+    deploy prometheus-server
 ```
