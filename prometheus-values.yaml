@@ -107,7 +107,7 @@ serverFiles:
           summary: Reserved memory is too low
           description: At least one Pod uses much more memory than it reserved
       - alert: ReservedMemTooHigh
-        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) < 0.5
+        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) < 0.6
         for: 6h
         labels:
           severity: notify
