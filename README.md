@@ -25,12 +25,27 @@ helm upgrade -i docker-flow-letsencrypt \
     docker-flow-letsencrypt \
     --namespace df
 
+source secrets
+
+cat prometheus-values.yaml \
+    | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
+    | tee prometheus-values-secret.yaml
+
 helm upgrade -i prometheus \
     stable/prometheus \
     --namespace metrics \
-    --values prometheus-values.yaml
+    --values prometheus-values-secret.yaml
 
 kubectl -n metrics \
     rollout status \
     deploy prometheus-server
+
+# curl https://raw.githubusercontent.com/solarwinds/fluentd-deployment/master/kubernetes/fluentd-daemonset-papertrail.yaml \
+#     | sed -e "s@logsN.papertrailapp.com@$FLUENT_PAPERTRAIL_HOST@g" \
+#     | sed -e "s@NNNNN@$FLUENT_PAPERTRAIL_PORT@g" \
+#     | sed -e "s@my-cluster-name@$FLUENT_HOSTNAME@g" \
+#     | kubectl apply -f -
+# 
+# kubectl -n kube-system rollout status \
+#     ds fluentd-papertrail
 ```
