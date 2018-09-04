@@ -4,10 +4,10 @@ jenkins:
     resources:
       limits:
         cpu: 200m
-        memory: 1500Mi
+        memory: 1100Mi
       requests:
         cpu: 100m
-        memory: 1000Mi
+        memory: 600Mi
     ServiceType: ClusterIP
     ServiceAnnotations:
       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
