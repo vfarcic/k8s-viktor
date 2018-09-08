@@ -12,10 +12,10 @@ server:
   resources:
     limits:
       cpu: 100m
-      memory: 1500Mi
+      memory: 2500Mi
     requests:
       cpu: 50m
-      memory: 1000Mi
+      memory: 1500Mi
 alertmanager:
   ingress:
     enabled: true
@@ -98,7 +98,7 @@ serverFiles:
           summary: Old Pods
           description: At least one Pod has not be updated to more than 90 days
       - alert: ReservedMemTooLow
-        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 1.25
+        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 1.25
         for: 1h
         labels:
           severity: notify
@@ -107,7 +107,7 @@ serverFiles:
           summary: Reserved memory is too low
           description: At least one Pod uses much more memory than it reserved
       - alert: ReservedMemTooHigh
-        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) < 0.6
+        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) < 0.6
         for: 6h
         labels:
           severity: notify
@@ -115,6 +115,24 @@ serverFiles:
         annotations:
           summary: Reserved memory is too high
           description: At least one Pod uses much less memory than it reserved
+      - alert: ReservedCPUTooLow
+        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", namespace!="ingress-nginx", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 1.25 and sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 0.005
+        for: 1h
+        labels:
+          severity: notify
+          frequency: low
+        annotations:
+          summary: Reserved CPU is too low
+          description: At least one Pod uses much more CPU than it reserved
+      - alert: ReservedCPUTooHigh
+        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) < 0.6 and sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 0.005
+        for: 6h
+        labels:
+          severity: notify
+          frequency: low
+        annotations:
+          summary: Reserved CPU is too high
+          description: At least one Pod uses much less CPU than it reserved
 alertmanagerFiles:
   alertmanager.yml:
     global: {}

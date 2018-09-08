@@ -3,11 +3,11 @@ jenkins:
     ImageTag: "2.138-alpine"
     resources:
       limits:
-        cpu: 200m
-        memory: 1100Mi
+        cpu: 500m
+        memory: 1500Mi
       requests:
-        cpu: 100m
-        memory: 600Mi
+        cpu: 300m
+        memory: 1000Mi
     ServiceType: ClusterIP
     ServiceAnnotations:
       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
