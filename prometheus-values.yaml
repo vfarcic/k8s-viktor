@@ -64,7 +64,7 @@ serverFiles:
     - name: latency
       rules:
       - alert: AppTooSlow
-        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="0.25", ingress!~"jenkins|prometheus-server"}[15m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress!~"jenkins|prometheus-server"}[15m])) by (ingress) < 0.95
+        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="0.5", ingress!~"jenkins|prometheus-server"}[15m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress!~"jenkins|prometheus-server"}[15m])) by (ingress) < 0.95
         labels:
           severity: notify
         annotations:
@@ -105,7 +105,7 @@ serverFiles:
     - name: errors
       rules:
       - alert: TooManyErrors
-        expr: sum(rate(nginx_ingress_controller_requests{status=~"4..|5.."}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_requests[5m])) by (ingress) > 0.05
+        expr: sum(rate(nginx_ingress_controller_requests{status=~"5.."}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_requests[5m])) by (ingress) > 0.05
         labels:
           severity: error
         annotations:
