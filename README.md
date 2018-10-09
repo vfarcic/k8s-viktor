@@ -25,7 +25,7 @@ helm upgrade -i docker-flow-letsencrypt \
     docker-flow-letsencrypt \
     --namespace df
 
-source secrets
+source secrets/env
 
 cat prometheus-values.yaml \
     | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
