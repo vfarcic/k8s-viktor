@@ -64,19 +64,21 @@ serverFiles:
     - name: latency
       rules:
       - alert: AppTooSlow
-        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="0.5", ingress!~"jenkins|prometheus-server"}[15m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress!~"jenkins|prometheus-server"}[15m])) by (ingress) < 0.95
+        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="1", ingress!~"jenkins|prometheus-server"}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress!~"jenkins|prometheus-server"}[5m])) by (ingress) < 0.95
+        for: 15m
         labels:
           severity: notify
         annotations:
           summary: Application is too slow
-          description: More then 5% of requests are slower than 0.25s
+          description: More then 5% of requests are slower than 0.5s
       - alert: AppTooSlowInternal
-        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="1", ingress=~"jenkins|prometheus-server"}[15m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress=~"jenkins|prometheus-server"}[15m])) by (ingress) < 0.95
+        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="1", ingress=~"jenkins|prometheus-server"}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress=~"jenkins|prometheus-server"}[5m])) by (ingress) < 0.95
+        for: 15m
         labels:
           severity: notify
         annotations:
           summary: CD Application is too slow
-          description: More then 5% of requests are slower than 0.5s
+          description: More then 5% of requests are slower than 1s
       - alert: TooManyRequests
         expr: sum(rate(nginx_ingress_controller_requests[5m])) by (ingress) / sum(label_join(kube_deployment_status_replicas, "ingress", ",", "deployment")) by (ingress) > 1
         labels:
@@ -128,7 +130,7 @@ serverFiles:
           frequency: low
         annotations:
           summary: Old Pods
-          description: At least one Pod has not be updated to more than 90 days
+          description: At least one Pod has not been updated to more than 90 days
       - alert: ReservedMemTooLow
         expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 1.5
         for: 1h
@@ -148,7 +150,7 @@ serverFiles:
           summary: Reserved memory is too high
           description: At least one Pod uses much less memory than it reserved
       - alert: ReservedCPUTooLow
-        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", namespace!="ingress-nginx", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 1.5 and sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 0.005
+        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", namespace!="ingress-nginx", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 1.5
         for: 1h
         labels:
           severity: notify
@@ -157,7 +159,7 @@ serverFiles:
           summary: Reserved CPU is too low
           description: At least one Pod uses much more CPU than it reserved
       - alert: ReservedCPUTooHigh
-        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) < 0.5 and sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 0.005
+        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system", namespace!="ingress-nginx"}) by (pod) < 0.5 and sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system", namespace!="ingress-nginx"}) by (pod) > 0.005
         for: 6h
         labels:
           severity: notify
