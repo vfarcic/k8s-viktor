@@ -38,7 +38,17 @@ helm upgrade -i prometheus \
 
 kubectl -n metrics \
     rollout status \
-    deploy prometheus-server
+    deployment prometheus-server
+
+helm upgrade -i grafana \
+    stable/grafana \
+    --namespace metrics \
+    --version 1.17.5 \
+    --values grafana-values.yml
+
+kubectl -n metrics \
+    rollout status \
+    deployment grafana
 
 # curl https://raw.githubusercontent.com/solarwinds/fluentd-deployment/master/kubernetes/fluentd-daemonset-papertrail.yaml \
 #     | sed -e "s@logsN.papertrailapp.com@$FLUENT_PAPERTRAIL_HOST@g" \

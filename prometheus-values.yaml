@@ -80,7 +80,7 @@ serverFiles:
           summary: CD Application is too slow
           description: More then 5% of requests are slower than 1s
       - alert: TooManyRequests
-        expr: sum(rate(nginx_ingress_controller_requests[5m])) by (ingress) / sum(label_join(kube_deployment_status_replicas, "ingress", ",", "deployment")) by (ingress) > 1
+        expr: sum(rate(nginx_ingress_controller_requests[5m])) by (ingress) / sum(label_join(kube_deployment_status_replicas, "ingress", ",", "deployment")) by (ingress) > 10
         labels:
           severity: notify
         annotations:
@@ -132,7 +132,7 @@ serverFiles:
           summary: Old Pods
           description: At least one Pod has not been updated to more than 90 days
       - alert: ReservedMemTooLow
-        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 1.5
+        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx", container_name!=""}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 1.5
         for: 1h
         labels:
           severity: notify
@@ -141,7 +141,7 @@ serverFiles:
           summary: Reserved memory is too low
           description: At least one Pod uses much more memory than it reserved
       - alert: ReservedMemTooHigh
-        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) < 0.5 and sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 5.25e+06
+        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", namespace!="ingress-nginx", container_name!=""}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) < 0.5 and sum(kube_pod_container_resource_requests_memory_bytes{namespace!="kube-system"}) by (pod) > 5.25e+06
         for: 6h
         labels:
           severity: notify
@@ -150,7 +150,7 @@ serverFiles:
           summary: Reserved memory is too high
           description: At least one Pod uses much less memory than it reserved
       - alert: ReservedCPUTooLow
-        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", namespace!="ingress-nginx", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 1.5
+        expr: sum(label_join(rate(container_cpu_usage_seconds_total{namespace!="kube-system", container_name!="", namespace!="ingress-nginx", pod_name!=""}[5m]), "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_requests_cpu_cores{namespace!="kube-system"}) by (pod) > 1.5
         for: 1h
         labels:
           severity: notify
@@ -168,7 +168,7 @@ serverFiles:
           summary: Reserved CPU is too high
           description: At least one Pod uses much less CPU than it reserved
       - alert: MemoryAtTheLimit
-        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system"}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_limits_memory_bytes{namespace!="kube-system"}) by (pod) > 0.8
+        expr: sum(label_join(container_memory_usage_bytes{namespace!="kube-system", container_name!=""}, "pod", ",", "pod_name")) by (pod) / sum(kube_pod_container_resource_limits_memory_bytes{namespace!="kube-system"}) by (pod) > 0.8
         for: 1h
         labels:
           severity: notify
