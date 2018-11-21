@@ -14,7 +14,7 @@ server:
       cpu: 100m
       memory: 2500Mi
     requests:
-      cpu: 10m
+      cpu: 40m
       memory: 1500Mi
 alertmanager:
   ingress:
@@ -64,21 +64,21 @@ serverFiles:
     - name: latency
       rules:
       - alert: AppTooSlow
-        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="1", ingress!~"jenkins|prometheus-server"}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress!~"jenkins|prometheus-server"}[5m])) by (ingress) < 0.95
+        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="1", ingress!~"jenkins|prometheus-server|grafana"}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress!~"jenkins|prometheus-server"}[5m])) by (ingress) < 0.95
         for: 15m
         labels:
           severity: notify
         annotations:
           summary: Application is too slow
-          description: More then 5% of requests are slower than 0.5s
+          description: More then 5% of requests are slower than 1s
       - alert: AppTooSlowInternal
-        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="1", ingress=~"jenkins|prometheus-server"}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress=~"jenkins|prometheus-server"}[5m])) by (ingress) < 0.95
+        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{le="2.5", ingress=~"jenkins|prometheus-server|grafana"}[5m])) by (ingress) / sum(rate(nginx_ingress_controller_request_duration_seconds_count{ingress=~"jenkins|prometheus-server"}[5m])) by (ingress) < 0.95
         for: 15m
         labels:
           severity: notify
         annotations:
-          summary: CD Application is too slow
-          description: More then 5% of requests are slower than 1s
+          summary: Internal application is too slow
+          description: More then 5% of requests are slower than 2.5s
       - alert: TooManyRequests
         expr: sum(rate(nginx_ingress_controller_requests[5m])) by (ingress) / sum(label_join(kube_deployment_status_replicas, "ingress", ",", "deployment")) by (ingress) > 10
         labels:
