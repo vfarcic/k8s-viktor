@@ -58,6 +58,9 @@ pushgateway:
     requests:
       cpu: 5m
       memory: 10Mi
+nodeExporter:
+  image:
+    tag: v0.17.0-rc.0
 serverFiles:
   alerts:
     groups:
