@@ -18,8 +18,26 @@ helm upgrade -i cert-manager \
     --set ingressShim.defaultIssuerName=letsencrypt-prod \
     --set ingressShim.defaultIssuerKind=ClusterIssuer
 
-helm upgrade -i jenkins jenkins \
-    --namespace cd
+source secrets/env
+
+export LB_IP=$(kubectl -n ingress-nginx get svc ingress-nginx \
+    -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
+echo $LB_IP
+
+JX_PASS=[...]
+
+jx install --provider gke \
+    --external-ip $LB_IP \
+    --domain dockerflow.com \
+    --default-admin-password $JX_PASS \
+    --ingress-namespace ingress-nginx \
+    --ingress-deployment nginx-ingress-controller \
+    --default-environment-prefix viktor \
+    --environment-git-owner vfarcic \
+    --tiller-namespace kube-system \
+    --no-tiller \
+    -b
 
 helm upgrade -i docker-flow-letsencrypt \
     docker-flow-letsencrypt \
@@ -33,8 +51,10 @@ cat prometheus-values.yaml \
 
 helm upgrade -i prometheus \
     stable/prometheus \
+    --version 8.8.0 \
     --namespace metrics \
-    --values prometheus-values-secret.yaml
+    --values prometheus-values-secret.yaml \
+    --wait
 
 kubectl -n metrics \
     rollout status \
