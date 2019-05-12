@@ -34,6 +34,7 @@ alertmanager:
     requests:
       cpu: 5m
       memory: 10Mi
+  configFromSecret: alertmanager
 kubeStateMetrics:
   resources:
     limits:

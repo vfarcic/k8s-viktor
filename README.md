@@ -33,18 +33,34 @@ jx install --provider gke \
     --default-admin-password $JX_PASS \
     --ingress-namespace ingress-nginx \
     --ingress-deployment nginx-ingress-controller \
+    --ingress-service ingress-nginx \
     --default-environment-prefix viktor \
     --environment-git-owner vfarcic \
-    --tiller-namespace kube-system \
+    --namespace cd \
     --no-tiller \
-    -b
+    --prow \
+    --tekton \
+    --batch-mode \
+    --verbose
 
-helm upgrade -i docker-flow-letsencrypt \
-    docker-flow-letsencrypt \
-    --namespace df
+jx delete env staging
 
-source secrets/env
+kubectl delete namespace cd-staging
 
+hub delete -y \
+    vfarcic/environment-viktor-staging
+
+cat alertmanager.yaml \
+    | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
+    | tee alertmanager-secret.yaml
+
+kubectl -n cd-production \
+    apply -f alertmanager-secret.yaml
+```
+
+TODO: Rewrite
+
+```bash
 cat prometheus-values.yaml \
     | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
     | tee prometheus-values-secret.yaml
@@ -59,6 +75,12 @@ helm upgrade -i prometheus \
 kubectl -n metrics \
     rollout status \
     deployment prometheus-server
+
+helm upgrade -i docker-flow-letsencrypt \
+    docker-flow-letsencrypt \
+    --namespace df
+
+source secrets/env
 
 helm upgrade -i grafana \
     stable/grafana \
@@ -78,4 +100,6 @@ kubectl -n metrics \
 # 
 # kubectl -n kube-system rollout status \
 #     ds fluentd-papertrail
+
+# TODO: Remove nginx Ingress
 ```

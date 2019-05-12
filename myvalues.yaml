@@ -1,3 +1,4 @@
 nexus:
   enabled: false
-
+monocular:
+  enabled: false

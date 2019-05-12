@@ -1,3 +1,4 @@
 /jenkins/charts
 /secrets
 /prometheus-values-secret.yaml
+/alertmanager-secret.yaml
