@@ -50,6 +50,8 @@ kubectl delete namespace cd-staging
 hub delete -y \
     vfarcic/environment-viktor-staging
 
+kubectl get pods # TODO: Should return tekton pipeline run Pods
+
 cat alertmanager.yaml \
     | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
     | tee alertmanager-secret.yaml
@@ -61,15 +63,11 @@ kubectl -n cd-production \
 TODO: Rewrite
 
 ```bash
-cat prometheus-values.yaml \
-    | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
-    | tee prometheus-values-secret.yaml
-
+# TODO: Remove
 helm upgrade -i prometheus \
     stable/prometheus \
-    --version 8.8.0 \
-    --namespace metrics \
-    --values prometheus-values-secret.yaml \
+    --version 8.11.1 \
+    --values prometheus-values.yaml \
     --wait
 
 kubectl -n metrics \
