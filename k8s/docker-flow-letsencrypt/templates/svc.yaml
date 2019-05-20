@@ -1,0 +1,18 @@
+---
+# Source: docker-flow-letsencrypt/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: lets-encrypt-docker-flow-letsencrypt
+  labels:
+    app: docker-flow-letsencrypt
+    chart: docker-flow-letsencrypt-0.0.1
+    release: lets-encrypt
+    heritage: Tiller
+spec:
+  ports:
+  - port: 80
+  type: NodePort
+  selector:
+    app: docker-flow-letsencrypt
+    release: lets-encrypt

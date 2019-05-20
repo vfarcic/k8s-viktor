@@ -1,0 +1,42 @@
+---
+# Source: docker-flow-letsencrypt/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lets-encrypt-docker-flow-letsencrypt
+  labels:
+    app: docker-flow-letsencrypt
+    chart: docker-flow-letsencrypt-0.0.1
+    release: lets-encrypt
+    heritage: Tiller
+spec:
+  selector:
+    matchLabels:
+      app: docker-flow-letsencrypt
+      release: lets-encrypt
+  template:
+    metadata:
+      labels:
+        app: docker-flow-letsencrypt
+        release: lets-encrypt
+    spec:
+      containers:
+      - name: ui
+        image: nib0r/docker-flow-proxy-letsencrypt-docs:master
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+        resources:
+          limits:
+            cpu: 10m
+            memory: 15Mi
+          requests:
+            cpu: 5m
+            memory: 5Mi
+          

@@ -1,63 +1,66 @@
 ```bash
-echo "apiVersion: certmanager.k8s.io/v1alpha1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-prod
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: viktor@farcic.com
-    privateKeySecretRef:
-      name: letsencrypt-prod
-    http01: {}" \
-    | kubectl apply -f -
-
-helm upgrade -i cert-manager \
-    stable/cert-manager \
-    --namespace df \
-    --set ingressShim.defaultIssuerName=letsencrypt-prod \
-    --set ingressShim.defaultIssuerKind=ClusterIssuer
-
 source secrets/env
 
-export LB_IP=$(kubectl -n ingress-nginx get svc ingress-nginx \
+K8S_VERSION=[...]
+
+jx create cluster gke \
+    --cluster-name viktor \
+    --domain devopstoolkitseries.com \
+    --project-id $PROJECT \
+    --region us-east1 \
+    --machine-type n1-standard-2 \
+    --min-num-nodes 1 \
+    --max-num-nodes 2 \
+    --default-admin-password $JX_PASS \
+    --default-environment-prefix viktor \
+    --git-provider-kind github \
+    --namespace cd \
+    --prow \
+    --tekton \
+    --batch-mode \
+    --verbose \
+    --kubernetes-version $K8S_VERSION
+
+export LB_IP=$(kubectl -n kube-system get svc jxing-nginx-ingress-controller \
     -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
 
 echo $LB_IP
 
-JX_PASS=[...]
+# Update DNS
 
-jx install --provider gke \
-    --external-ip $LB_IP \
-    --domain dockerflow.com \
-    --default-admin-password $JX_PASS \
-    --ingress-namespace ingress-nginx \
-    --ingress-deployment nginx-ingress-controller \
-    --ingress-service ingress-nginx \
-    --default-environment-prefix viktor \
-    --environment-git-owner vfarcic \
-    --namespace cd \
-    --no-tiller \
-    --prow \
-    --tekton \
-    --batch-mode \
-    --verbose
+kubectl create namespace cert-manager
 
-jx delete env staging
+kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
 
-kubectl delete namespace cd-staging
+kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.7/deploy/manifests/cert-manager.yaml
 
-hub delete -y \
-    vfarcic/environment-viktor-staging
+# echo "apiVersion: certmanager.k8s.io/v1alpha1
+# kind: ClusterIssuer
+# metadata:
+#   name: letsencrypt-prod
+# spec:
+#   acme:
+#     server: https://acme-v02.api.letsencrypt.org/directory
+#     email: viktor@farcic.com
+#     privateKeySecretRef:
+#       name: letsencrypt-prod
+#     http01: {}" \
+#     | kubectl apply -f -
 
-kubectl get pods # TODO: Should return tekton pipeline run Pods
+# helm upgrade -i cert-manager \
+#     stable/cert-manager \
+#     --namespace df \
+#     --set ingressShim.defaultIssuerName=letsencrypt-prod \
+#     --set ingressShim.defaultIssuerKind=ClusterIssuer
 
-cat alertmanager.yaml \
-    | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
-    | tee alertmanager-secret.yaml
+# kubectl get pods
 
-kubectl -n cd-production \
-    apply -f alertmanager-secret.yaml
+# cat alertmanager.yaml \
+#     | sed -e "s@SLACK_WEBHOOK_URL@$SLACK_WEBHOOK_URL@g" \
+#     | tee alertmanager-secret.yaml
+
+# kubectl -n cd-production \
+#     apply -f alertmanager-secret.yaml
 ```
 
 TODO: Rewrite
@@ -69,6 +72,15 @@ helm upgrade -i prometheus \
     --version 8.11.1 \
     --values prometheus-values.yaml \
     --wait
+    
+helm template docker-flow-letsencrypt \
+    --name lets-encrypt \
+    --output-dir k8s \
+    --namespace df
+
+kubectl apply \
+    -n df \
+    -f k8s/docker-flow-letsencrypt/templates
 
 kubectl -n metrics \
     rollout status \
